@@ -90,7 +90,7 @@ const logoutUser = asyncHandler(async (req, res) => {
         req.user._id,
         {
             $unset: {
-                refreshTokens: 1,
+                refreshToken: 1,
             }
         },
         {
@@ -99,7 +99,8 @@ const logoutUser = asyncHandler(async (req, res) => {
     )
     const options = {
         httpOnly: true,
-        secure: true
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
     }
     return res.status(200)
         .clearCookie("accessToken", options)
@@ -126,16 +127,15 @@ const RefreshAccessToken = asyncHandler(async (req, res) => {
             secure: true
         }
 
-        const { accessToken, newrefreshToken } = await generateAccessAndRefreshToken(user._id);
-        console.log(newrefreshToken);
+        const { accessToken, refreshToken: newRefreshToken } = await generateAccessAndRefreshToken(user._id);
         return res.status(200)
             .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", newrefreshToken, options)
+            .cookie("refreshToken", newRefreshToken, options)
             .json(
                 new ApiResponse(200,
                     {
                         accessToken,
-                        refreshToken: newrefreshToken
+                        refreshToken: newRefreshToken
                     },
                     "Refreshing access token Successfully")
             )

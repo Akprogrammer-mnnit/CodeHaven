@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Loading from './Loading.jsx'
 import { login } from "../store/authSlice.js";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 const Login = () => {
     const { register, handleSubmit, formState: { errors } } = useForm();
@@ -14,7 +14,7 @@ const Login = () => {
     const [loading, setloading] = useState(false);
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const mode = useSelector(state => state.auth.mode);
+
 
     const onSubmit = async (data) => {
         setloading(true);
@@ -23,7 +23,7 @@ const Login = () => {
                 withCredentials: true,
             });
             if (response) {
-                dispatch(login(response.data.message));
+                dispatch(login(response.data.data.user));
                 navigate("/");
             }
             setErrorMessage(null);
