@@ -54,7 +54,7 @@ const CodeEditor = () => {
     const [currentFile, setCurrentFile] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
     const [lastSaved, setLastSaved] = useState(null);
-    const [fileExplorerKey, setFileExplorerKey] = useState(0);
+    const [fileExplorerKey] = useState(0);
     const userInfo = useSelector((state) => state.auth.userData);
 
     const addToTerminal = (message, type = 'info') => {

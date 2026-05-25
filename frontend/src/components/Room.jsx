@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import CodeEditor from './CodeEditor.jsx'; // Import your existing CodeEditor component
+
 import { useNavigate } from "react-router-dom";
 import { useSelector } from 'react-redux';
 // Configure axios base URL for your backend
@@ -15,8 +15,7 @@ const Room = () => {
     const [showJoinForm, setShowJoinForm] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [showCodeEditor, setShowCodeEditor] = useState(false);
-    const [currentRoomId, setCurrentRoomId] = useState('');
+
     const userData = useSelector((state) => state.auth.userData);
     console.log("USER DATA: ", userData);
     const userId = userData?._id;
@@ -35,8 +34,6 @@ const Room = () => {
             const data = response.data;
             console.log(data);
             if (data.success) {
-                setCurrentRoomId(data.data.roomId);
-                setShowCodeEditor(true);
                 Navigate(`/room/${data.data.roomId}/${userId}`);
             } else {
                 setError(data.message || 'Failed to create room');
@@ -91,8 +88,6 @@ const Room = () => {
             console.log(joinData);
 
             if (joinData.success) {
-                setCurrentRoomId(roomId.trim());
-                setShowCodeEditor(true);
                 Navigate(`/room/${roomId}/${userId}`);
             } else {
                 setError(joinData.message || 'Failed to join room');
@@ -123,11 +118,6 @@ const Room = () => {
         }
     };
 
-    const handleRoomError = () => {
-        setShowCodeEditor(false);
-        setCurrentRoomId('');
-        setError('Connection to room lost');
-    };
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
             <div className="max-w-md w-full mx-4">

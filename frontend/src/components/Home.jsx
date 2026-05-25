@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { X, LogOut } from 'lucide-react';
+import { logout } from '../store/authSlice.js';
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_BACKEND_URL + '/api',
@@ -14,7 +15,10 @@ const Home = () => {
     const [showDeleteModal, setShowDeleteModal] = React.useState(false);
     const [roomToDelete, setRoomToDelete] = React.useState(null);
     const userData = useSelector(state => state.auth.userData);
-    const userId = userData?._id
+    const userId = userData?._id;
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const fetchRooms = async () => {
         try {
@@ -66,63 +70,35 @@ const Home = () => {
         fetchRooms();
     }, [userId]);
 
-    const joinRoom = async (roomId) => {
-        if (!roomId.trim()) {
-            setError('Please enter a room ID');
-            return;
-        }
-
-        setLoading(true);
-        setError('');
-
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
         try {
-            const checkResponse = await api.get(`/rooms/${roomId.trim()}/check`);
-            const checkData = checkResponse.data;
-
-            if (!checkData.success) {
-                setError('Room not found');
-                setLoading(false);
-                return;
-            }
-
-            if (!checkData.data.available) {
-                setError(checkData.data.reason || 'Room is not available');
-                setLoading(false);
-                return;
-            }
-
-            const joinResponse = await api.post(`/rooms/${roomId.trim()}/join`, {
-                userId: userId,
-                userName: userName
-            });
-
-            const joinData = joinResponse.data;
-            console.log(joinData);
-
-            if (joinData.success) {
-                setCurrentRoomId(roomId.trim());
-                setShowCodeEditor(true);
-                Navigate(`/room/${roomId}/${userId}`);
-            } else {
-                setError(joinData.message || 'Failed to join room');
-            }
-        } catch (err) {
-            if (err.response) {
-                const data = err.response.data;
-                setError(data.message || 'Failed to join room');
-            } else if (err.request) {
-                setError('Network error. Please try again.');
-            } else {
-                setError('An unexpected error occurred.');
-            }
-            console.error('Error joining room:', err);
+            await api.post('/users/logout', {}, { withCredentials: true });
+            dispatch(logout());
+            navigate('/login');
+        } catch (error) {
+            console.error('Error logging out:', error);
+            dispatch(logout());
+            navigate('/login');
         } finally {
-            setLoading(false);
+            setIsLoggingOut(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+        <div className="min-h-screen relative flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+            {/* Logout Button */}
+            <div className="absolute top-6 right-6 z-20">
+                <button
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                    className="group flex items-center space-x-2 px-5 py-2.5 bg-white/10 hover:bg-red-500/20 backdrop-blur-lg border border-white/20 hover:border-red-400/40 rounded-full text-gray-300 hover:text-red-400 transition-all duration-300 shadow-lg hover:shadow-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <LogOut size={18} className="transform group-hover:-translate-x-0.5 transition-transform duration-200" />
+                    <span className="text-sm font-medium">{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
+                </button>
+            </div>
+
             <div className="text-center max-w-4xl mx-auto px-4">
                 {/* Header Section */}
                 <div className="mb-12">
